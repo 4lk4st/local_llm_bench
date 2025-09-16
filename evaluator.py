@@ -8,11 +8,16 @@ from typing import List, Tuple, Optional
 from openai import OpenAI
 from dotenv import load_dotenv
 
+from constants import INPUT_EXCEL_FILENAME, OUTPUT_EXCEL_FILENAME, OUTPUT_EVALUATION_FILENAME
+
+
 # Загружаем переменные окружения из .env
 load_dotenv()
+API_KEY = os.getenv("BOTHUB_API_KEY")
+
+API_TIMEOUT = 5
 
 # 🔍 Проверка API-ключа
-API_KEY = os.getenv("BOTHUB_API_KEY")
 
 if not API_KEY:
     print("[CRITICAL] ❌ Переменная BOTHUB_API_KEY не установлена!")
@@ -30,10 +35,7 @@ if len(API_KEY) < 10:
 
 print(f"[INFO] ✅ BOTHUB_API_KEY успешно загружен (первые 5 символов: {API_KEY[:5]}...)")
 
-# Конфигурация
-QUESTIONS_FILE = "questions.xlsx"       # содержит эталонные ответы в столбце D
-ANSWERS_FILE = "answers_v1.xlsx"        # содержит ответы модели (первый лист, столбец "Ответ модели")
-OUTPUT_FILE = "evaluation_results.xlsx" # результат оценки
+
 
 # Инициализация клиента Bothub
 client = OpenAI(
@@ -57,13 +59,13 @@ def load_data() -> List[Tuple[int, str, str]]:
     """
     try:
         # Загружаем эталонные ответы (столбец D = 3-й индекс)
-        df_questions = pd.read_excel(QUESTIONS_FILE, header=0)
+        df_questions = pd.read_excel(INPUT_EXCEL_FILENAME, header=0)
         if df_questions.shape[1] < 4:
             raise ValueError("В questions.xlsx меньше 4 столбцов. Ожидался столбец D с эталонными ответами.")
         ground_truths = df_questions.iloc[:, 3].fillna("").astype(str).tolist()  # Столбец D (индекс 3)
 
         # Загружаем ответы модели
-        df_answers = pd.read_excel(ANSWERS_FILE, header=0)
+        df_answers = pd.read_excel(OUTPUT_EXCEL_FILENAME, header=0)
         if "Ответ модели" not in df_answers.columns:
             raise ValueError("В answers_v1.xlsx нет столбца 'Ответ модели'")
         model_answers = df_answers["Ответ модели"].fillna("").astype(str).tolist()
@@ -153,12 +155,12 @@ def evaluate_answers() -> List[Tuple[int, str, str, float]]:
         results.append((num, ground_truth, model_answer, score))
 
         # Задержка, чтобы не перегружать API
-        time.sleep(5)
+        time.sleep(API_TIMEOUT)
 
     return results
 
 
-def save_evaluation_results(results: List[Tuple[int, str, str, float]], output_file: str = OUTPUT_FILE) -> bool:
+def save_evaluation_results(results: List[Tuple[int, str, str, float]], output_file: str = OUTPUT_EVALUATION_FILENAME) -> bool:
     """
     Сохраняет результаты оценки в Excel-файл.
 

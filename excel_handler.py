@@ -8,29 +8,36 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font
 from constants import INPUT_EXCEL_FILENAME, OUTPUT_EXCEL_FILENAME
 
-def read_questions_from_excel(file_path: str = INPUT_EXCEL_FILENAME) -> Optional[List[Tuple[int, str]]]:
+
+def read_questions_from_excel(file_path: str = INPUT_EXCEL_FILENAME) -> Optional[List[Tuple[int, str, str]]]:
     """
-    Читает вопросы из Excel-файла.
+    Читает вопросы и тексты из источника из Excel-файла.
 
     Аргументы:
         file_path (str): Путь к файлу с вопросами.
 
     Возвращает:
-        Optional[List[Tuple[int, str]]]: Список кортежей (номер, вопрос) или None при ошибке.
+        Optional[List[Tuple[int, str, str]]]: Список кортежей (номер, вопрос, текст_из_источника) или None при ошибке.
 
     Пример:
         >>> read_questions_from_excel("questions.xlsx")
-        [(1, "Почему небо голубое?"), (2, "Как работает фотосинтез?")]
+        [(1, "Почему небо голубое?", "Физика атмосферы гласит, что...")]
     """
     try:
         df = pd.read_excel(file_path)
-        if "№" not in df.columns or "Вопрос для модели" not in df.columns:
-            print(f"[ERROR] В файле {file_path} отсутствуют обязательные колонки: '№', 'Вопрос для модели'")
-            return None
+        required_columns = ["№", "Вопрос для модели", "Текст из источника"]
+        for col in required_columns:
+            if col not in df.columns:
+                print(f"[ERROR] В файле {file_path} отсутствует обязательная колонка: '{col}'")
+                return None
 
-        # Преобразуем в список кортежей, игнорируя NaN
+        # Преобразуем в список кортежей, игнорируя NaN. Для текста из источника — подставляем заглушку при отсутствии.
         questions = [
-            (int(row["№"]), str(row["Вопрос для модели"]).strip())
+            (
+                int(row["№"]),
+                str(row["Вопрос для модели"]).strip(),
+                str(row["Текст из источника"]).strip() if pd.notna(row["Текст из источника"]) else "[Контекст отсутствует]"
+            )
             for _, row in df.iterrows()
             if pd.notna(row["№"]) and pd.notna(row["Вопрос для модели"])
         ]
