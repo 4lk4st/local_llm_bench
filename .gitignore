@@ -11,3 +11,9 @@ wheels/
 
 # Environment variables
 .env
+
+# Continue.Dev
+.continue/
+
+# Experiments
+data/experiments/

@@ -1,0 +1,8 @@
+experiment_name: "baseline_v1"
+pipeline: "baseline"
+model: "qwen3:0.6b"
+system_prompt: ""
+use_context: false
+temperature: 0.7
+input_file: "data/raw/questions.xlsx"
+output_dir: "data/experiments/baseline_v1"
