@@ -1,8 +1,9 @@
-experiment_name: "baseline_v1"
-pipeline: "baseline"
-model: "qwen3:0.6b"
-system_prompt: ""
-use_context: false
-temperature: 0.7
-input_file: "data/raw/questions.xlsx"
-output_dir: "data/experiments/baseline_v1"
+name: baseline_experiment
+model: qwen3:0.6b
+pipeline: baseline
+prompt_template: "Ответь на вопрос: {question}"
+parameters:
+  temperature: 0.7
+  top_p: 0.9
+input_path: data/raw/questions.xlsx
+output_dir: data/experiments/baseline_v1

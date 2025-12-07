@@ -1,6 +1,7 @@
 from .baseline import build_prompt as baseline_prompt
 
-# Pipelines registration
+# Словарь доступных пайплайнов
 PIPELINES = {
-    "baseline": baseline_prompt
+    "baseline": baseline_prompt,
+    # При необходимости можно добавить другие пайплайны, например "rag": rag_prompt
 }
